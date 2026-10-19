@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#087a45">
+<title>السبحة</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic", "Traditional Arabic", sans-serif;
+    background:
+      radial-gradient(800px 420px at 50% 0%, #1d4a34, transparent 62%),
+      #07110d;
+    color: #fffdf6;
+  }
+  .stage {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 12px;
+  }
+  .caption { color: #d7c48a; font-size: 13px; text-align: center; }
+  .phone {
+    width: 390px;
+    height: 780px;
+    max-height: calc(100vh - 58px);
+    background: #141414;
+    border: 11px solid #1c1c1c;
+    border-radius: 38px;
+    box-shadow: 0 0 0 2px #3d3d3d, 0 26px 60px rgba(0,0,0,.5);
+    position: relative;
+    overflow: hidden;
+  }
+  .phone.buzz { animation: buzz .32s linear; }
+  @keyframes buzz {
+    0%, 100% { transform: translateX(0); }
+    18% { transform: translateX(-4px); }
+    36% { transform: translateX(4px); }
+    54% { transform: translateX(-3px); }
+    72% { transform: translateX(3px); }
+  }
+  .hole {
+    position: absolute; top: 18px; left: 50%; width: 11px; height: 11px;
+    margin-left: -5px; background: #0a0a0a; border-radius: 50%; z-index: 8;
+    box-shadow: 0 0 0 2px #2a2a2a;
+  }
+  .screen {
+    position: absolute; inset: 8px;
+    border-radius: 28px; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: #087a45;
+  }
+  .status {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 6;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 16px 0; height: 32px;
+    font-size: 12px; letter-spacing: .3px;
+    background: linear-gradient(rgba(0,0,0,.38), transparent);
+    pointer-events: none;
+  }
+  .views { flex: 1; min-height: 0; position: relative; }
+  .view {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; padding: 38px 14px 8px; overflow: auto;
+    user-select: none; -webkit-user-select: none;
+  }
+  .view.on { display: flex; }
+  .title { font-size: 18px; font-weight: 800; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .hint { text-align: center; font-size: 12px; opacity: .9; margin: 2px 0 6px; }
+  .chips { display: flex; gap: 6px; justify-content: center; margin-bottom: 4px; }
+  .chip {
+    font-size: 11px; padding: 4px 7px; border-radius: 99px;
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.2);
+  }
+  .chip.now { background: #fff; color: #123; font-weight: 800; }
+  .chip.ok { background: rgba(0,0,0,.28); }
+  .ring {
+    width: 100%; margin: 4px auto 0; position: relative;
+    touch-action: manipulation; cursor: pointer; flex: none;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .string {
+    position: relative; width: 100%; height: 92px; overflow: hidden; direction: ltr;
+    border-radius: 18px; background: rgba(0,0,0,.16);
+    box-shadow: inset 0 3px 10px rgba(0,0,0,.22);
+  }
+  .string .thread {
+    position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px;
+    background: linear-gradient(#f6e3a1, #a9822a);
+  }
+  .string .mark {
+    position: absolute; left: 50%; top: 6px; margin-left: -9px; width: 0; height: 0;
+    border-left: 9px solid transparent; border-right: 9px solid transparent;
+    border-top: 11px solid #fffdf6;
+  }
+  .string .track { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  .gb {
+    position: absolute; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%;
+    background-image: radial-gradient(circle at 32% 28%, rgba(255,255,255,.9), rgba(255,255,255,0) 40%),
+                      radial-gradient(circle at 60% 75%, rgba(0,0,0,.28), rgba(0,0,0,0) 60%);
+    box-shadow: 0 4px 8px rgba(0,0,0,.35);
+    transition: left .28s cubic-bezier(.3,.9,.3,1), background-color .28s, transform .22s;
+  }
+  .gb.hit { transform: scale(1.22); }
+  .bead {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,.32);
+    transform: translate(-50%, -50%);
+    box-shadow: inset 0 -2px 2px rgba(0,0,0,.25);
+  }
+  .bead.on { box-shadow: 0 0 8px var(--bead, #ffe082), inset 0 1px 1px rgba(255,255,255,.7); }
+  .orb {
+    position: relative; width: 168px; height: 168px; flex: none; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; pointer-events: none;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.5), transparent 34%),
+      radial-gradient(circle at 50% 62%, rgba(255,255,255,.08), rgba(0,0,0,.32));
+    box-shadow: 0 0 0 4px rgba(255,224,130,.9), 0 12px 26px rgba(0,0,0,.28);
+  }
+  .orb b { font-size: 24px; line-height: 1.3; padding: 0 10px; }
+  .orb span { font-size: 28px; font-weight: 800; margin-top: 2px; }
+  .tassel {
+    width: 8px; height: 28px; margin: -2px auto 6px; flex: none;
+    background: linear-gradient(#ffe082, #b8860b); border-radius: 0 0 8px 8px; position: relative;
+  }
+  .tassel:before {
+    content: ""; position: absolute; top: -7px; left: -7px; width: 22px; height: 11px;
+    border-radius: 6px; background: #ffe082;
+  }
+  .countline { text-align: center; font-size: 15px; font-weight: 700; }
+  .bar {
+    height: 8px; margin: 8px 18px; border-radius: 99px;
+    background: rgba(255,255,255,.25); overflow: hidden;
+  }
+  .bar i { display: block; height: 100%; width: 0; background: #fff; border-radius: 99px; transition: width .2s; }
+  .row { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+  button.ghost, button.solid {
+    border: 0; border-radius: 14px; padding: 10px 14px; font: inherit; font-weight: 700; cursor: pointer;
+  }
+  button.ghost { background: rgba(255,255,255,.18); color: inherit; }
+  button.solid {
+    background: #fffdf6; color: #123; width: 100%; font-size: 18px; padding: 13px;
+    box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  }
+  .card {
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+    border-radius: 18px; padding: 14px; margin-top: 8px;
+  }
+  label { display: block; font-size: 14px; margin: 10px 0 6px; font-weight: 700; }
+  input {
+    width: 100%; border: 0; border-radius: 14px; padding: 13px 14px;
+    font: inherit; font-size: 18px; background: #fffdf6; color: #1a2330;
+    user-select: text; -webkit-user-select: text;
+  }
+  .err { color: #ffe082; min-height: 18px; font-size: 13px; margin-top: 6px; }
+  .paper {
+    background: #fff8e8; color: #1b3a28; border: 2px solid #e2c57a;
+    border-radius: 18px; padding: 14px 14px 18px; margin-top: 8px;
+    line-height: 2.2; font-size: 18px; text-align: justify;
+    box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    font-family: "Traditional Arabic", "Scheherazade New", "Noto Naskh Arabic", Tahoma, serif;
+  }
+  .paper h2 { text-align: center; margin: 0 0 4px; font-size: 22px; color: #8a6412; }
+  .paper .src { text-align: center; color: #8a6412; font-size: 13px; margin-bottom: 8px; }
+  .vn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 22px; margin: 0 4px; padding: 0 6px;
+    border-radius: 99px; background: #f3e0a8; color: #6d4e12; font-size: 12px;
+    font-family: Tahoma, sans-serif;
+  }
+  .imam-panel {
+    margin-top: 8px; border-radius: 22px; padding: 22px 14px; text-align: center;
+    min-height: 210px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 12px 28px rgba(0,0,0,.22); transition: background .35s, color .35s;
+    cursor: pointer; touch-action: manipulation;
+  }
+  .imam-panel .ord { font-size: 13px; opacity: .9; }
+  .imam-panel .nm { font-size: 26px; font-weight: 800; line-height: 1.45; margin: 6px 0; }
+  .imam-panel .lq { font-size: 18px; font-weight: 700; }
+  .imam-panel .sal { margin-top: 6px; font-size: 14px; }
+  .dots { display: flex; justify-content: center; gap: 6px; margin: 10px 0; flex-wrap: wrap; }
+  .dots i {
+    width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,.28); display: block;
+  }
+  .dots i.on { transform: scale(1.35); }
+  .nav {
+    flex: none; display: grid; grid-template-columns: repeat(4, 1fr);
+    background: #07140f; border-top: 1px solid rgba(255,255,255,.08);
+    padding: 6px 2px 10px;
+  }
+  .tab {
+    background: none; border: 0; color: rgba(255,255,255,.62);
+    font: inherit; font-size: 11px; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 2px; cursor: pointer;
+  }
+  .tab svg { width: 22px; height: 22px; }
+  .tab.on { color: #ffe082; }
+  .toast {
+    position: absolute; top: 46px; left: 50%; transform: translateX(-50%) translateY(-8px);
+    background: #fffdf6; color: #1a2330; font-weight: 800; font-size: 13px;
+    padding: 7px 12px; border-radius: 99px; opacity: 0; pointer-events: none;
+    z-index: 7; transition: .2s; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .vibe {
+    display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 99px;
+    background: #fff; color: #0b3d2e; font-size: 11px; opacity: 0; transition: opacity .15s;
+  }
+  .vibe.on { opacity: 1; }
+  @media (max-width: 520px) {
+    .stage { padding: 0; background: #000; min-height: 100%; }
+    .caption { display: none; }
+    .phone {
+      width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; box-shadow: none;
+    }
+    .screen { inset: 0; border-radius: 0; }
+    .hole { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="hole"></div>
+    <div class="screen">
+      <div class="status"><span id="clock">12:00</span><span>السبحة</span></div>
+      <div class="toast" id="toast"></div>
+      <div class="views">
+
+        <section class="view on" id="view-zahra">
+          <div class="title">تسبيح الزهراء عليها السلام</div>
+          <div class="hint">انقر وسط السبحة — كل ضغطة ترجّ الهاتف <b class="vibe" id="vibe">رجّاج</b></div>
+          <div class="chips" id="chips"></div>
+          <div class="ring" id="zRing">
+            <div class="orb"><b id="zText">الله أكبر</b><span id="zNum">٠</span></div>
+            <div class="string" id="zString"></div>
+            <div id="zBeads" style="display:none"></div>
+          </div>
+          <div class="countline" id="zLine">٠ من ٣٤</div>
+          <div class="bar"><i id="zBar"></i></div>
+          <div class="row"><button class="ghost" id="zReset" type="button">إعادة التسبيح</button></div>
+        </section>
+
+        <section class="view" id="view-open">
+          <div class="title">تسبيح مفتوح</div>
+          <div id="openForm">
+            <div class="hint">أدخل اسم التسبيح والعدد، ثم ابدأ العدّ</div>
+            <div class="card">
+              <label for="oName">اسم التسبيح</label>
+              <input id="oName" maxlength="48" placeholder="مثال: لا إله إلا الله" autocomplete="off">
+              <label for="oMax">عدد التسبيحات المطلوبة</label>
+              <input id="oMax" type="number" min="1" max="10000" inputmode="numeric" placeholder="١٠٠" value="100">
+              <div class="err" id="oErr"></div>
+              <button class="solid" id="oStart" type="button">ابدأ التسبيح</button>
+            </div>
+          </div>
+          <div id="openRun" style="display:none">
+            <div class="hint" id="oHint">انقر للعدّ</div>
+            <div class="ring" id="oRing">
+              <div class="orb"><b id="oText">تسبيح</b><span id="oNum">٠</span></div>
+              <div class="string" id="oString"></div>
+              <div id="oBeads" style="display:none"></div>
+            </div>
+            <div class="countline" id="oLine">٠ من ٠</div>
+            <div class="bar"><i id="oBar"></i></div>
+            <div class="row">
+              <button class="ghost" id="oAgain" type="button">إعادة العدّ</button>
+              <button class="ghost" id="oEdit" type="button">تغيير</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-ayah" style="background:linear-gradient(165deg,#0e6b45,#083d2c)">
+          <div class="title">آية الكرسي</div>
+          <div class="hint">كاملة حتى «هم فيها خالدون»</div>
+          <div class="paper">
+            <h2>آية الكرسي</h2>
+            <div class="src">سورة البقرة ٢٥٥ – ٢٥٧</div>
+            <p>اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ <span class="vn">٢٥٥</span></p>
+            <p>لَا إِكْرَاهَ فِي الدِّينِ ۖ قَد تَّبَيَّنَ الرُّشْدُ مِنَ الْغَيِّ ۚ فَمَن يَكْفُرْ بِالطَّاغُوتِ وَيُؤْمِن بِاللَّهِ فَقَدِ اسْتَمْسَكَ بِالْعُرْوَةِ الْوُثْقَىٰ لَا انْفِصَامَ لَهَا ۗ وَاللَّهُ سَمِيعٌ عَلِيمٌ <span class="vn">٢٥٦</span></p>
+            <p>اللَّهُ وَلِيُّ الَّذِينَ آمَنُوا يُخْرِجُهُم مِّنَ الظُّلُمَاتِ إِلَى النُّورِ ۖ وَالَّذِينَ كَفَرُوا أَوْلِيَاؤُهُمُ الطَّاغُوتُ يُخْرِجُونَهُم مِّنَ النُّورِ إِلَى الظُّلُمَاتِ ۗ أُولَٰئِكَ أَصْحَابُ النَّارِ ۖ هُمْ فِيهَا خَالِدُونَ <span class="vn">٢٥٧</span></p>
+          </div>
+        </section>
+
+        <section class="view" id="view-imam" style="background:linear-gradient(180deg,#0c3d2e,#071910)">
+          <div class="title">الأئمة الاثنا عشر عليهم السلام</div>
+          <div class="hint">كل نقرة تبدّل الاسم المبارك ولون ساحته</div>
+          <div class="string" id="iString" style="cursor:pointer;touch-action:manipulation"></div>
+          <div class="dots" id="iDots"></div>
+          <div class="imam-panel" id="iPanel">
+            <div class="ord" id="iOrd">الإمام الأول</div>
+            <div class="nm" id="iName">الإمام علي بن أبي طالب</div>
+            <div class="lq" id="iLaqab">أمير المؤمنين</div>
+            <div class="sal" id="iSal">عليه السلام</div>
+          </div>
+          <div class="countline" id="iLine" style="margin-top:10px">١ من ١٢</div>
+          <div class="row"><button class="ghost" id="iReset" type="button">من البداية</button></div>
+        </section>
+      </div>
+
+      <nav class="nav">
+        <button class="tab on" data-tab="view-zahra" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.4" fill="currentColor"/><circle cx="18" cy="8" r="1.4" fill="currentColor"/><circle cx="18" cy="16" r="1.4" fill="currentColor"/><circle cx="12" cy="20" r="1.4" fill="currentColor"/><circle cx="6" cy="16" r="1.4" fill="currentColor"/><circle cx="6" cy="8" r="1.4" fill="currentColor"/></svg>
+          الزهراء
+        </button>
+        <button class="tab" data-tab="view-open" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>
+          مفتوح
+        </button>
+        <button class="tab" data-tab="view-ayah" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h11a2 2 0 0 1 2 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 0 1 2-2z"/><path d="M8 8h8M8 12h6"/></svg>
+          الكرسي
+        </button>
+        <button class="tab" data-tab="view-imam" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 19c1.2-3 3.4-4.5 7-4.5S17.8 16 19 19"/><circle cx="5" cy="7" r="1.2" fill="currentColor"/><circle cx="19" cy="7" r="1.2" fill="currentColor"/></svg>
+          الأئمة
+        </button>
+      </nav>
+    </div>
+  </div>
+  <div class="caption">شاشة أندرويد للفحص — الاهتزاز الحقيقي يعمل عند فتح الصفحة من الهاتف</div>
+</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function ar(n) { return String(n).replace(/[0-9]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩"[d]; }); }
+
+  var phases = [
+    { text: "الله أكبر", n: 34, c1: "#00c853", c2: "#087a45", c3: "#f6c445", bead: "#ffe082", ink: "#fffdf6" },
+    { text: "الحمد لله", n: 33, c1: "#00b0ff", c2: "#0b5cad", c3: "#64ffda", bead: "#e1f5fe", ink: "#fffdf6" },
+    { text: "سبحان الله", n: 33, c1: "#e040fb", c2: "#6a1b9a", c3: "#ff6090", bead: "#fce4ec", ink: "#fffdf6" }
+  ];
+  var doneTheme = { c1: "#ffd54f", c2: "#f9a825", c3: "#fff8e1", bead: "#fff3c4", ink: "#3e2723" };
+  var imams = [
+    { name: "الإمام علي بن أبي طالب", laqab: "أمير المؤمنين", sal: "عليه السلام", ord: "الأول", c1: "#0f9d6b", c2: "#f2c14b", ink: "#fffdf6" },
+    { name: "الإمام الحسن بن علي", laqab: "المجتبى", sal: "عليه السلام", ord: "الثاني", c1: "#1565c0", c2: "#64b5f6", ink: "#fffdf6" },
+    { name: "الإمام الحسين بن علي", laqab: "سيد الشهداء", sal: "عليه السلام", ord: "الثالث", c1: "#c62828", c2: "#ff8a80", ink: "#fffdf6" },
+    { name: "الإمام علي بن الحسين", laqab: "زين العابدين", sal: "عليه السلام", ord: "الرابع", c1: "#ef6c00", c2: "#ffe082", ink: "#2a1604" },
+    { name: "الإمام محمد بن علي", laqab: "الباقر", sal: "عليه السلام", ord: "الخامس", c1: "#00897b", c2: "#80cbc4", ink: "#fffdf6" },
+    { name: "الإمام جعفر بن محمد", laqab: "الصادق", sal: "عليه السلام", ord: "السادس", c1: "#ad1457", c2: "#f48fb1", ink: "#fffdf6" },
+    { name: "الإمام موسى بن جعفر", laqab: "الكاظم", sal: "عليه السلام", ord: "السابع", c1: "#4527a0", c2: "#b39ddb", ink: "#fffdf6" },
+    { name: "الإمام علي بن موسى", laqab: "الرضا", sal: "عليه السلام", ord: "الثامن", c1: "#2e7d32", c2: "#c5e1a5", ink: "#10210c" },
+    { name: "الإمام محمد بن علي", laqab: "الجواد", sal: "عليه السلام", ord: "التاسع", c1: "#0277bd", c2: "#81d4fa", ink: "#fffdf6" },
+    { name: "الإمام علي بن محمد", laqab: "الهادي", sal: "عليه السلام", ord: "العاشر", c1: "#6a1b9a", c2: "#e1bee7", ink: "#fffdf6" },
+    { name: "الإمام الحسن بن علي", laqab: "العسكري", sal: "عليه السلام", ord: "الحادي عشر", c1: "#00695c", c2: "#4dd0e1", ink: "#fffdf6" },
+    { name: "الإمام محمد بن الحسن", laqab: "المهدي المنتظر", sal: "عجل الله تعالى فرجه", ord: "الثاني عشر", c1: "#f9a825", c2: "#fff59d", ink: "#2a1c04" }
+  ];
+
+  var zPhase = 0, zCount = 0, zDone = false, zLock = false;
+  var oOn = false, oName = "", oMax = 100, oCount = 0, oDone = false;
+  var iIndex = 0, iRound = 1;
+  var toastTimer = 0;
+
+  function save() {
+    try {
+      localStorage.setItem("sabha-v1", JSON.stringify({
+        zPhase: zPhase, zCount: zCount, zDone: zDone,
+        oOn: oOn, oName: oName, oMax: oMax, oCount: oCount, oDone: oDone,
+        iIndex: iIndex, iRound: iRound
+      }));
+    } catch (e) {}
+  }
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem("sabha-v1") || "null");
+      if (!s) return;
+      zPhase = s.zPhase || 0; zCount = s.zCount || 0; zDone = !!s.zDone;
+      oOn = !!s.oOn; oName = s.oName || ""; oMax = s.oMax || 100; oCount = s.oCount || 0; oDone = !!s.oDone;
+      iIndex = s.iIndex || 0; iRound = s.iRound || 1;
+      if (zPhase > 2) zPhase = 0;
+      if (iIndex > 11) iIndex = 0;
+    } catch (e) {}
+  }
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 1300);
+  }
+  function buzz(strong) {
+    var pattern = strong ? [70, 50, 110, 50, 160] : [45, 30, 55];
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+    var phone = $("phone");
+    phone.classList.remove("buzz");
+    void phone.offsetWidth;
+    phone.classList.add("buzz");
+    var vibe = $("vibe");
+    vibe.classList.add("on");
+    setTimeout(function () { vibe.classList.remove("on"); }, 360);
+  }
+  function paint(el, theme) {
+    el.style.background = "linear-gradient(165deg," + theme.c1 + "," + theme.c2 + " 58%," + theme.c3 + ")";
+    el.style.color = theme.ink || "#fffdf6";
+    el.style.setProperty("--bead", theme.bead);
+  }
+  function drawBeads(container, total, done, color) {
+    container.innerHTML = "";
+    var n = total > 48 ? 36 : total;
+    var lit = total > 48 ? Math.round((done / total) * n) : done;
+    var cx = 134, cy = 134, r = 114;
+    for (var i = 0; i < n; i++) {
+      var a = (i / n) * Math.PI * 2 - Math.PI / 2;
+      var el = document.createElement("i");
+      el.className = "bead" + (i < lit ? " on" : "");
+      var sz = n > 30 ? 8 : 14;
+      el.style.width = sz + "px";
+      el.style.height = sz + "px";
+      el.style.left = (cx + Math.cos(a) * r) + "px";
+      el.style.top = (cy + Math.sin(a) * r) + "px";
+      if (i < lit) el.style.background = color;
+      container.appendChild(el);
+    }
+  }
+
+  function makeString(el) {
+    var k = 0, off = 0, S = 58, R = 6, map = {};
+    var thread = document.createElement("div");
+    thread.className = "thread";
+    var mark = document.createElement("div");
+    mark.className = "mark";
+    var track = document.createElement("div");
+    track.className = "track";
+    el.appendChild(thread);
+    el.appendChild(track);
+    el.appendChild(mark);
+    function color(i) { return "hsl(" + (((i * 53) + off * 110) % 360) + ",88%,58%)"; }
+    function make(i) {
+      var b = document.createElement("i");
+      b.className = "gb";
+      b.style.left = ((i - k) * S) + "px";
+      b.style.backgroundColor = color(i);
+      track.appendChild(b);
+      map[i] = b;
+    }
+    function sync() {
+      var i;
+      for (i = k - R; i <= k + R; i++) { if (!map[i]) make(i); }
+      for (var key in map) {
+        var n = parseInt(key, 10);
+        if (n < k - R || n > k + R) { track.removeChild(map[key]); delete map[key]; }
+        else { map[key].style.left = ((n - k) * S) + "px"; }
+      }
+    }
+    function recolor() {
+      for (var key in map) { map[key].style.backgroundColor = color(parseInt(key, 10)); }
+    }
+    sync();
+    return {
+      step: function () {
+        k++;
+        sync();
+        recolor();
+        var b = map[k];
+        if (b) {
+          b.classList.add("hit");
+          setTimeout(function () { b.classList.remove("hit"); }, 240);
+        }
+      },
+      setOffset: function (o) { off = o; recolor(); },
+      reset: function () {
+        k = 0;
+        for (var key in map) { track.removeChild(map[key]); delete map[key]; }
+        map = {};
+        sync();
+      }
+    };
+  }
+
+  function renderZahra() {
+    var theme = zDone ? doneTheme : phases[zPhase];
+    var view = $("view-zahra");
+    paint(view, theme);
+    var target = zDone ? 100 : phases[zPhase].n;
+    var shown = zDone ? 100 : zCount;
+    $("zText").textContent = zDone ? "تقبّل الله" : phases[zPhase].text;
+    $("zText").style.fontSize = "24px";
+    $("zNum").textContent = ar(shown);
+    $("zLine").textContent = zDone
+      ? "تمّ تسبيح الزهراء عليها السلام · " + ar(100)
+      : ar(zCount) + " من " + ar(phases[zPhase].n);
+    $("zBar").style.width = (zDone ? 100 : Math.round((zCount / phases[zPhase].n) * 100)) + "%";
+    drawBeads($("zBeads"), zDone ? 34 : phases[zPhase].n, zDone ? 34 : zCount, theme.bead);
+    var chips = "";
+    for (var i = 0; i < phases.length; i++) {
+      var cls = zDone || i < zPhase ? "ok" : (i === zPhase ? "now" : "");
+      chips += '<span class="chip ' + cls + '">' + phases[i].text + " " + ar(phases[i].n) + "</span>";
+    }
+    $("chips").innerHTML = chips;
+  }
+  function tapZahra() {
+    if (zDone) { toast("اكتمل التسبيح"); buzz(false); return; }
+    if (zLock) return;
+    zCount++;
+    zStr.step();
+    buzz(false);
+    renderZahra();
+    if (zCount >= phases[zPhase].n) {
+      if (zPhase < phases.length - 1) {
+        zLock = true;
+        var next = phases[zPhase + 1].text;
+        setTimeout(function () {
+          zPhase++;
+          zStr.setOffset(zPhase);
+          zCount = 0;
+          zLock = false;
+          buzz(true);
+          renderZahra();
+          toast("تغيّر اللون · " + next);
+          save();
+        }, 420);
+      } else {
+        zDone = true;
+        buzz(true);
+        renderZahra();
+        toast("تمّت المئة");
+      }
+    }
+    save();
+  }
+
+  function renderOpen() {
+    $("openForm").style.display = oOn ? "none" : "block";
+    $("openRun").style.display = oOn ? "block" : "none";
+    if (!oOn) return;
+    var theme = oDone
+      ? { c1: "#ffd54f", c2: "#f57f17", c3: "#fff8e1", bead: "#fff3c4", ink: "#3e2723" }
+      : { c1: "#ff6d00", c2: "#c51162", c3: "#ffab40", bead: "#ffe0b2", ink: "#fffdf6" };
+    paint($("view-open"), theme);
+    $("oText").textContent = oName || "تسبيح";
+    $("oText").style.fontSize = (oName.length > 16 ? "16px" : "22px");
+    $("oNum").textContent = ar(oCount);
+    $("oLine").textContent = oDone ? "تمّ العدد · " + ar(oMax) : ar(oCount) + " من " + ar(oMax);
+    $("oHint").textContent = oDone ? "بارك الله فيك" : "انقر وسط السبحة";
+    $("oBar").style.width = Math.round((oCount / oMax) * 100) + "%";
+    drawBeads($("oBeads"), oMax, oCount, theme.bead);
+  }
+  function tapOpen() {
+    if (!oOn || oDone) { if (oDone) toast("اكتمل العدد"); return; }
+    oCount++;
+    oStr.step();
+    buzz(oCount >= oMax);
+    if (oCount >= oMax) { oDone = true; toast("تمّ " + oName); }
+    renderOpen();
+    save();
+  }
+
+  function renderImam() {
+    var m = imams[iIndex];
+    var panel = $("iPanel");
+    panel.style.background = "linear-gradient(160deg," + m.c1 + "," + m.c2 + ")";
+    panel.style.color = m.ink;
+    $("iOrd").textContent = "الإمام " + m.ord;
+    $("iName").textContent = m.name;
+    $("iLaqab").textContent = m.laqab;
+    $("iSal").textContent = m.sal;
+    $("iLine").textContent = ar(iIndex + 1) + " من ١٢ · الجولة " + ar(iRound);
+    var dots = "";
+    for (var i = 0; i < 12; i++) {
+      dots += '<i class="' + (i === iIndex ? "on" : "") + '" style="' + (i === iIndex ? "background:" + m.c2 : "") + '"></i>';
+    }
+    $("iDots").innerHTML = dots;
+  }
+  function advanceImam() {
+    var prev = iIndex;
+    iStr.step();
+    iIndex++;
+    if (iIndex > 11) { iIndex = 0; iRound++; toast("جولة جديدة"); }
+    buzz(iIndex === 0 && prev === 11);
+    renderImam();
+    save();
+  }
+
+  function show(id) {
+    var views = document.querySelectorAll(".view");
+    var tabs = document.querySelectorAll(".tab");
+    for (var i = 0; i < views.length; i++) views[i].classList.toggle("on", views[i].id === id);
+    for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle("on", tabs[j].getAttribute("data-tab") === id);
+  }
+
+  $("zRing").addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    tapZahra();
+  });
+  $("oRing").addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    tapOpen();
+  });
+  $("iPanel").addEventListener("pointerdown", function (e) {
+    if (e.target.closest("button")) return;
+    e.preventDefault();
+    advanceImam();
+  });
+  $("iString").addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    advanceImam();
+  });
+  $("zReset").addEventListener("click", function () {
+    zPhase = 0; zCount = 0; zDone = false; zLock = false;
+    zStr.reset(); zStr.setOffset(0);
+    renderZahra(); save(); toast("بدأت من جديد");
+  });
+  $("oStart").addEventListener("click", function () {
+    var name = $("oName").value.replace(/^\s+|\s+$/g, "");
+    var max = parseInt($("oMax").value, 10);
+    if (!name) { $("oErr").textContent = "اكتب اسم التسبيح"; return; }
+    if (!max || max < 1 || max > 10000) { $("oErr").textContent = "أدخل عددًا من ١ إلى ١٠٠٠٠"; return; }
+    $("oErr").textContent = "";
+    oName = name; oMax = max; oCount = 0; oDone = false; oOn = true;
+    renderOpen(); save();
+  });
+  $("oAgain").addEventListener("click", function () {
+    oCount = 0; oDone = false; oStr.reset(); renderOpen(); save();
+  });
+  $("oEdit").addEventListener("click", function () {
+    oOn = false; $("oName").value = oName; $("oMax").value = oMax;
+    renderOpen(); save();
+  });
+  $("iReset").addEventListener("click", function (e) {
+    e.stopPropagation();
+    iIndex = 0; iRound = 1; renderImam(); save(); toast("من الإمام الأول");
+  });
+  var tabBtns = document.querySelectorAll(".tab");
+  for (var t = 0; t < tabBtns.length; t++) {
+    tabBtns[t].addEventListener("click", function () { show(this.getAttribute("data-tab")); });
+  }
+  ["zRing", "oRing", "iPanel"].forEach(function (id) {
+    $(id).addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  });
+
+  function clock() {
+    var d = new Date();
+    var h = String(d.getHours()).padStart(2, "0");
+    var m = String(d.getMinutes()).padStart(2, "0");
+    $("clock").textContent = h + ":" + m;
+  }
+  var zStr = makeString($("zString"));
+  var oStr = makeString($("oString"));
+  var iStr = makeString($("iString"));
+  load();
+  zStr.setOffset(zPhase);
+  if (oName) $("oName").value = oName;
+  if (oMax) $("oMax").value = oMax;
+  renderZahra();
+  renderOpen();
+  renderImam();
+  clock();
+  setInterval(clock, 15000);
+})();
+</script>
+</body>
+</html>
