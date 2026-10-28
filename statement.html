@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كشف حساب</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Tahoma, "Segoe UI", sans-serif; background: #f3f0fa; color: #111; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 16px; }
+  .box { background: #fff; border: 2px solid #5b2ca0; padding: 12px 16px; margin-bottom: 18px; }
+  .box h1 { margin: 0 0 10px; font-size: 22px; text-align: center; }
+  .dates { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
+  .dates input { font-size: 16px; padding: 6px; border: 1px solid #5b2ca0; border-radius: 6px; }
+  .row { display: flex; align-items: stretch; margin-bottom: 12px; border: 2px solid #5b2ca0; border-radius: 40px; overflow: hidden; background: #fff; }
+  .label { flex: 0 0 48%; padding: 12px 16px; text-align: center; font-weight: bold; border-left: 2px solid #5b2ca0; border-radius: 40px; background: #fff; }
+  .val { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; background: #ece7f7; }
+  .val input { width: 100%; height: 100%; border: 0; background: transparent; text-align: center; font: inherit; padding: 8px; }
+  .val input:focus { outline: 2px solid #5b2ca0; }
+  .note { background: #fff; border: 2px solid #5b2ca0; padding: 10px 16px; }
+  .note textarea { width: 100%; min-height: 70px; border: 0; font: inherit; resize: vertical; }
+  .btns { display: flex; gap: 10px; margin-top: 14px; }
+  button { flex: 1; padding: 12px; font-size: 16px; border: 0; border-radius: 8px; background: #5b2ca0; color: #fff; cursor: pointer; }
+  button.alt { background: #888; }
+  @media print { body { background: #fff; } .btns { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="box">
+    <h1>كشف حساب</h1>
+    <div class="dates">
+      <label>من <input type="date" id="from"></label>
+      <label>الى <input type="date" id="to"></label>
+    </div>
+  </div>
+
+  <div class="row"><div class="label">المبلغ الكلي</div><div class="val"><input type="number" id="total" min="0" value="0"></div></div>
+  <div class="row"><div class="label">مبلغ الخصومات</div><div class="val"><input type="number" id="discount" min="0" value="0"></div></div>
+  <div class="row"><div class="label">المبلغ الصافي</div><div class="val" id="net">0</div></div>
+  <div class="row"><div class="label">المبلغ المدفوع</div><div class="val"><input type="number" id="paid" min="0" value="0"></div></div>
+  <div class="row"><div class="label">المبلغ المتبقي</div><div class="val" id="remain">0</div></div>
+  <div class="row"><div class="label">عدد المراجعين</div><div class="val"><input type="number" id="patients" min="0" value="0"></div></div>
+  <div class="row"><div class="label">عدد التحاليل</div><div class="val"><input type="number" id="tests" min="0" value="0"></div></div>
+  <div class="row"><div class="label">المصاريف اليومية</div><div class="val"><input type="number" id="expenses" min="0" value="0"></div></div>
+  <div class="row"><div class="label">الوارد النهائي</div><div class="val" id="final">0</div></div>
+
+  <div class="note"><b>ملاحظة:</b><textarea id="note"></textarea></div>
+
+  <div class="btns">
+    <button onclick="window.print()">طباعة</button>
+    <button class="alt" id="reset">تصفير</button>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const inputs = ["from","to","total","discount","paid","patients","tests","expenses","note"];
+  const num = id => Number($(id).value) || 0;
+  const today = new Date().toISOString().slice(0, 10);
+
+  function calc() {
+    const net = num("total") - num("discount");
+    $("net").textContent = net;
+    $("remain").textContent = net - num("paid");
+    $("final").textContent = net - num("expenses");   // الوارد النهائي = الصافي - المصاريف اليومية
+    const data = {};
+    inputs.forEach(i => data[i] = $(i).value);
+    localStorage.setItem("statement", JSON.stringify(data));
+  }
+
+  const saved = JSON.parse(localStorage.getItem("statement") || "null");
+  inputs.forEach(i => {
+    if (saved && saved[i] !== undefined) $(i).value = saved[i];
+    $(i).addEventListener("input", calc);
+  });
+  if (!$("from").value) $("from").value = today;
+  if (!$("to").value) $("to").value = today;
+
+  $("reset").onclick = () => {
+    inputs.forEach(i => $(i).value = ["from","to"].includes(i) ? today : (i === "note" ? "" : 0));
+    calc();
+  };
+  calc();
+</script>
+</body>
+</html>
